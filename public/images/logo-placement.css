@@ -1,0 +1,5 @@
+.association-logo-preview{min-height:160px;background:var(--association-logo) center 12px/130px 130px no-repeat,#f1ecf0!important;border-style:solid!important;border-color:#e0d7dc!important;border-radius:12px;color:#564a50!important;padding-top:137px}
+.association-logo-preview small{color:#51484e!important;font-size:9px}
+.player-card .player-cover:before{content:"";position:absolute;right:10px;top:9px;width:27px;height:27px;border-radius:50%;background:var(--association-logo) center/contain no-repeat #f2edf1;border:1px solid #e0d6dd;z-index:1}
+.screen-preview:after{content:"";position:absolute;right:14px;top:14px;width:42px;height:42px;border-radius:50%;background:var(--association-logo) center/contain no-repeat #f2edf1;box-shadow:0 0 25px #e0bd7155}
+.footer:before{content:"";width:26px;height:26px;order:3;background:var(--association-logo) center/contain no-repeat #f2edf1;border-radius:50%;margin-right:auto}

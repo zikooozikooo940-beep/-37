@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0c1714" />
+  <meta name="description" content="منصة دوري جمعية قاضي عياض لكرة القدم" />
+  <title>منصة جمعية قاضي عياض لكرة القدم</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="public/images/logo.css" />
+  <link rel="stylesheet" href="public/images/logo-placement.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#home"><span class="brand-mark">ق</span><span><b>دوري قاضي عياض</b><small>دوري الجمعية</small></span></a>
+      <div class="side-label">القائمة الرئيسية</div>
+      <nav class="nav">
+        <a class="nav-item active" href="#home" data-page="home"><i>⌂</i> الرئيسية</a>
+        <a class="nav-item" href="#tournament" data-page="tournament"><i>♜</i> البطولة</a>
+        <a class="nav-item" href="#matches" data-page="matches"><i>⚽</i> المباريات </a>
+        <a class="nav-item" href="#players" data-page="players"><i>♙</i> اللاعبون</a>
+        <a class="nav-item" href="#stats" data-page="stats"><i>▥</i> الإحصائيات</a>
+        <a class="nav-item" href="#news" data-page="news"><i>▤</i> الأخبار</a>
+        <a class="nav-item" href="#archive" data-page="archive"><i>◷</i> أرشيف المواسم</a>
+        <a class="nav-item" href="#screen" data-page="screen"><i>▣</i> شاشة العرض</a>
+      </nav>
+      <div class="side-label side-label-admin hide">إدارة الدوري</div>
+      <nav class="nav">
+        <a class="nav-item hide" href="#admin" data-page="admin"><i>⚙</i> لوحة الإدارة <span class="tiny-dot"></span></a>
+        <a class="nav-item hide" href="#requests" data-page="requests"><i>♧</i> طلبات الانضمام </a>
+        <a class="nav-item hide" href="#media" data-page="media"><i>▧</i> إدارة الصور</a>
+      </nav>
+      <div class="sidebar-bottom"><div class="season-card"><div class="season-orbit">⚽</div><b>دوري الجمعية</b><p>تصفح النتائج المنشورة، واطلب الانضمام كلاعب.</p></div><div class="profile"><div class="avatar admin-avatar">ج</div><div><b>زائر</b><small>جمعية قاضي عياض</small></div><button class="dots" title="الإعدادات">•••</button></div></div>
+    </aside>
+    <main class="main" id="main">
+      <header class="topbar"><button class="mobile-menu" id="mobileMenu" aria-label="القائمة">☰</button><div class="breadcrumb">جمعية القاضي عياض <span>/</span> <b id="pageTitle">الرئيسية</b></div><div class="top-actions"><button class="text-action" id="openAuth">دخول الأعضاء / طلب انضمام</button><button class="icon-btn" id="themeBtn" title="تبديل المظهر">☼</button><button class="icon-btn notification-btn" id="notifyBtn" title="الإشعارات">♧<i></i></button><button class="icon-btn hide" id="logoutBtn" title="تسجيل الخروج">↪</button><div class="top-divider"></div><div class="top-user"><div class="avatar admin-avatar">ع</div><span><b>زائر</b><small>جمعية قاضي عياض</small></span><span class="chevron">⌄</span></div></div></header>
+      <div id="systemNotice" class="system-notice hide" role="status" aria-live="polite"></div>
+      <section class="page active-page" id="page-home">
+        <section class="hero"><div class="hero-grid"></div><div class="hero-content"><div class="eyebrow">جمعية قاضي عياض</div><h1>كرة القدم<br/><em>تجمعنا</em></h1><p>تابع أخبار الجمعية ومبارياتها ولاعبيها من مكان واحد.<br/>ستظهر التفاصيل بعد اعتمادها وإضافتها من الإدارة.</p><div class="hero-actions"><button class="btn btn-gold" data-page-link="tournament">صفحة الدوري <span>←</span></button><button class="btn btn-glass" data-page-link="players">اللاعبون</button></div><div class="hero-trust"><small>البيانات الرسمية تظهر بعد ربط الموقع وتحديثها.</small></div></div><div class="hero-art"><div class="hero-image-shape"></div><div class="hero-watermark">ق</div></div><div class="hero-scroll">مرر لاستكشاف الصفحات <span>↓</span></div></section>
+        <section class="section-block"><div class="section-heading"><div><div class="eyebrow muted-eyebrow">الموسم الحالي</div><h2>المباريات <em>والنتائج</em></h2><p>تظهر النتائج والمواعيد المنشورة للجميع.</p></div><button class="link-button" data-page-link="matches">صفحة المباريات <span>←</span></button></div><div class="panel"><div id="homeResults"><div class="empty-box">⚽<b>لا توجد نتائج منشورة</b>ستظهر هنا بعد إضافتها واعتمادها.</div></div></div></section>
+        <section class="section-block"><div class="section-heading"><div><div class="eyebrow muted-eyebrow">من الميدان</div><h2>صور من <em>الجمعية</em></h2><p>لقطات من فريق الجمعية وقميصه الرياضي.</p></div></div><div class="association-gallery"><figure><img src="public/images/association-team.jpg" alt="فريق جمعية القاضي عياض لكرة القدم" loading="lazy"><figcaption>فريق الجمعية</figcaption></figure><figure><img src="public/images/association-jersey.jpg" alt="قميص فريق جمعية القاضي عياض" loading="lazy"><figcaption>قميص الفريق</figcaption></figure></div></section>        <footer class="footer"><span>© جمعية قاضي عياض</span><span>منصة الدوري</span></footer>
+      </section>      <section class="page" id="page-tournament"></section><section class="page" id="page-matches"></section><section class="page" id="page-players"></section><section class="page" id="page-stats"></section><section class="page" id="page-news"></section><section class="page" id="page-archive"></section><section class="page" id="page-admin"></section><section class="page" id="page-requests"></section><section class="page" id="page-screen"></section><section class="page" id="page-media"></section>
+    </main>
+  </div>
+  <div class="toast" id="toast"><span>✓</span><b id="toastText">تم</b></div><div class="notification-pop" id="notificationPop"><b>الإشعارات</b><span class="close-pop" id="closeNotify">×</span><div id="notificationItems"><p>لا توجد إشعارات جديدة.</p></div></div>
+  <dialog id="modal"><div class="modal-head"><b id="modalTitle">عنوان</b><button class="modal-close" id="modalClose">×</button></div><div class="modal-body" id="modalBody"></div></dialog>
+  <dialog id="authDialog"><div class="modal-head"><b id="authTitle">الدخول إلى دوري قاضي عياض</b><button class="modal-close" id="authClose">×</button></div><div class="modal-body"><div id="authNotice" class="auth-notice">النتائج المنشورة متاحة للزوار. لإنشاء حساب لاعب، أرسل طلب انضمام وانتظر مراجعة الإدارة.</div><div class="form-field"><label>الاسم الكامل</label><input id="authName" autocomplete="name" placeholder="الاسم كما سيظهر في الدوري"></div><div class="form-field"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="name@example.com"></div><div class="form-field"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password" minlength="8" placeholder="٨ أحرف على الأقل"></div><div class="form-field" id="roleField"><label>نوع طلب الانضمام</label><select id="authRole"><option value="player">لاعب</option><option value="follower">متابع</option></select></div><div class="form-field hide" id="authPhotoField"><label for="authPhoto">صورة اللاعب (اختيارية)</label><input id="authPhoto" type="file" accept="image/jpeg,image/png,image/webp"><small class="field-hint">تُرفع بعد تأكيد البريد والدخول من هذا المتصفح.</small><img id="authPhotoPreview" class="auth-photo-preview hide" alt="معاينة صورة اللاعب"></div><button class="gold-action" id="authSubmit">تسجيل الدخول</button><button class="text-action" id="authMode">إنشاء حساب جديد</button></div></dialog>
+  <dialog id="configDialog"><div class="modal-head"><b>إعداد اتصال Supabase</b><button class="modal-close" id="configClose" onclick="event.stopPropagation();document.getElementById('configDialog').close()">×</button></div><div class="modal-body"><p id="configNotice">أدخل المفتاح العام anon أو publishable. تُحفظ القيم في هذا المتصفح فقط. لا تدخل مفتاح service_role.</p><div class="form-field"><label>رابط المشروع</label><input id="configUrl" type="url" placeholder="https://your-project.supabase.co"></div><div class="form-field"><label>المفتاح العام anon</label><input id="configKey" autocomplete="off" placeholder="eyJ..."></div><div class="form-field"><label>مفتاح VAPID العام لإشعارات المتصفح (اختياري)</label><input id="vapidKey" autocomplete="off" placeholder="B..." /></div><button class="gold-action" id="saveConfig" onclick="saveLeagueConfig(event)">حفظ الاتصال وإعادة التحميل</button></div></dialog>
+  <div class="auth-gate hide" id="authGate"><div class="auth-gate-card"><div class="brand-mark">ق</div><h1>دوري قاضي عياض</h1><p id="gateNotice">الدوري مغلق للأعضاء المعتمدين. سجّل الدخول أو اطلب الانضمام.</p><button class="gold-action" id="openAuth">تسجيل الدخول / طلب انضمام</button><button class="text-action" id="setupConnection" onclick="openLeagueConfig(event)">إعداد اتصال قاعدة البيانات</button><button class="text-action hide" id="gateLogout">تسجيل الخروج</button></div></div>
+  <div class="connection-badge" id="connectionBadge"><i></i><span id="connectionText">وضع تجريبي محلي</span><button id="connectionSettings" title="إعداد اتصال قاعدة البيانات" onclick="openLeagueConfig(event)">⚙</button></div>
+  <script src="config.js"></script>
+  <!-- الواجهة العامة تبقى متاحة للزوار؛ تسجيل الدخول اختياري للإدارة. -->
+  <script src="supabase-client.js"></script>
+  <script>
+    window.openLeagueConfig=function(event){event?.stopPropagation();const c=window.LeagueDB?.config||{};document.getElementById("configUrl").value=c.url||"https://qqwdvukihmxfugonoixv.supabase.co";document.getElementById("configKey").value=c.anonKey||"";document.getElementById("vapidKey").value=c.vapidPublicKey||"";document.getElementById("configNotice").textContent="أدخل المفتاح العام anon أو publishable من إعدادات مشروع Supabase. لا تدخل service_role.";const d=document.getElementById("configDialog");if(!d.open)d.showModal()};
+    window.saveLeagueConfig=async function(event){event?.stopPropagation();const button=document.getElementById("saveConfig"),notice=document.getElementById("configNotice");button.disabled=true;button.textContent="جارٍ حفظ الإعدادات…";try{await window.LeagueDB.saveConfig(document.getElementById("configUrl").value,document.getElementById("configKey").value,document.getElementById("vapidKey").value);notice.textContent="تم حفظ الاتصال. جارٍ تحديث الصفحة…";location.reload()}catch(err){notice.textContent=err.message;button.disabled=false;button.textContent="حفظ الاتصال وإعادة التحميل"}};
+  </script>
+  <script>
+    const showRuntimeError=(message)=>{const n=document.getElementById('systemNotice');if(!n)return;n.textContent=message;n.classList.remove('hide','success');n.classList.add('error')};
+    window.addEventListener('error',e=>{const target=e.target;if(target&&target!==window&&!(target instanceof HTMLScriptElement))return;const source=e.filename||target?.src||'غير محدد';const line=e.lineno?` (السطر ${e.lineno})`:'';if(target instanceof HTMLScriptElement)showRuntimeError(`تعذر تحميل ملف الموقع: ${source}. تحقق من وجود ملفات app.js وsupabase-client.js بجانب index.html.`);else if(e.message==='Script error.'&&location.protocol==='file:')showRuntimeError('الموقع مفتوح مباشرة كملف (file://)، لذلك المتصفح يخفي تفاصيل الخطأ. شغّله عبر عنوان يبدأ بـ http://localhost أو انشره على استضافة HTTPS، ثم حدّث الصفحة.');else if(e.message==='Script error.')showRuntimeError(`المتصفح أخفى تفاصيل خطأ JavaScript في ${source}${line}. افتح الموقع من استضافة HTTPS ثم حدّث الصفحة لإظهار تفاصيل أدق.`);else showRuntimeError(`خطأ JavaScript في ${source}${line}: ${e.message||'خطأ غير معروف'}`)},true);
+    window.addEventListener('unhandledrejection',e=>showRuntimeError(`تعذر إكمال العملية: ${e.reason?.message||String(e.reason||'خطأ غير معروف')}`));
+  </script>  <script src="app.js"></script>
+</body></html>
