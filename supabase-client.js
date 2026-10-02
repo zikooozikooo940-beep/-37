@@ -44,7 +44,21 @@
     get configured(){return configured();}, get config(){return {url:normalize(config.url),anonKey:config.anonKey,vapidPublicKey:config.vapidPublicKey};},
     get session(){return session;},
     async signIn(email,password){const v=await request('auth/v1/token?grant_type=password',{method:'POST',body:{email,password},token:config.anonKey});storeSession(v);return v;},
-    async signUp({email,password,name,role}){const v=await request('auth/v1/signup',{method:'POST',body:{email,password,data:{display_name:name,requested_role:role}},token:config.anonKey});if(v?.access_token)storeSession(v);return v;},
+    async signUp({email,password,name,role}){const redirectTo=`${location.origin}${location.pathname}${location.search}`;const v=await request('auth/v1/signup',{method:'POST',query:{redirect_to:redirectTo},body:{email,password,data:{display_name:name,requested_role:role}},token:config.anonKey});if(v?.access_token)storeSession(v);return v;},
+    async consumeAuthCallback(){
+      const params=new URLSearchParams(location.hash.replace(/^#/,''));
+      const callbackError=params.get('error_description')||params.get('error');
+      const accessToken=params.get('access_token');
+      if(!callbackError&&!accessToken)return null;
+      history.replaceState(null,'',`${location.pathname}${location.search}`);
+      if(callbackError)throw new Error(callbackError);
+      const refreshToken=params.get('refresh_token');
+      const expiresIn=Number(params.get('expires_in'))||3600;
+      const user=await request('auth/v1/user',{token:accessToken});
+      const authSession={access_token:accessToken,refresh_token:refreshToken,token_type:params.get('token_type')||'bearer',expires_in:expiresIn,expires_at:Number(params.get('expires_at'))||Math.floor(Date.now()/1000)+expiresIn,user};
+      storeSession(authSession);
+      return authSession;
+    },
     async signOut(){try{if(session?.access_token)await request('auth/v1/logout',{method:'POST'});}finally{storeSession(null);}},
     async profile(){const s=await validSession();if(!s?.user?.id)return null;const rows=await request('rest/v1/profiles',{query:{select:'id,display_name,role,status,avatar_url,joined_at',id:`eq.${s.user.id}`,limit:'1'}});return rows?.[0]||null;},
     async saveConfig(url,anonKey,vapidPublicKey){const clean=normalize(url);if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(clean))throw new Error('رابط Supabase غير صحيح.');if(!anonKey||anonKey.length<20)throw new Error('المفتاح العام غير مكتمل.');localStorage.setItem(CONFIG_KEY,JSON.stringify({url:clean,anonKey,vapidPublicKey:vapidPublicKey||''}));},
