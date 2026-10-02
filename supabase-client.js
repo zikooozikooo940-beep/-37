@@ -6,6 +6,7 @@
   const siteConfig = window.LEAGUE_SUPABASE || {};
   const config = { url: siteConfig.url || saved?.url || '', anonKey: siteConfig.anonKey || saved?.anonKey || '', vapidPublicKey: siteConfig.vapidPublicKey || saved?.vapidPublicKey || '' };
   let session = (() => { try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; } })();
+  let recoveryPending = false;
   const normalize = v => String(v || '').replace(/\/+$/, '');
   const configured = () => /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(normalize(config.url)) && typeof config.anonKey === 'string' && config.anonKey.length > 20;
   const storeSession = v => { session = v; if (v) sessionStorage.setItem(SESSION_KEY, JSON.stringify(v)); else sessionStorage.removeItem(SESSION_KEY); };
@@ -44,11 +45,15 @@
     get configured(){return configured();}, get config(){return {url:normalize(config.url),anonKey:config.anonKey,vapidPublicKey:config.vapidPublicKey};},
     get session(){return session;},
     async signIn(email,password){const v=await request('auth/v1/token?grant_type=password',{method:'POST',body:{email,password},token:config.anonKey});storeSession(v);return v;},
+    get recoveryPending(){return recoveryPending;},
+    async requestPasswordReset(email){const redirectTo=`${location.origin}${location.pathname}${location.search}`;return request('auth/v1/recover',{method:'POST',query:{redirect_to:redirectTo},body:{email},token:config.anonKey});},
+    async updatePassword(password){if(!session?.access_token)throw new Error('رابط الاستعادة غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا.');const user=await request('auth/v1/user',{method:'PUT',body:{password}});session.user=user;storeSession(session);recoveryPending=false;return user;},
     async signUp({email,password,name,role}){const redirectTo=`${location.origin}${location.pathname}${location.search}`;const v=await request('auth/v1/signup',{method:'POST',query:{redirect_to:redirectTo},body:{email,password,data:{display_name:name,requested_role:role}},token:config.anonKey});if(v?.access_token)storeSession(v);return v;},
     async consumeAuthCallback(){
       const params=new URLSearchParams(location.hash.replace(/^#/,''));
       const callbackError=params.get('error_description')||params.get('error');
       const accessToken=params.get('access_token');
+      recoveryPending=params.get('type')==='recovery';
       if(!callbackError&&!accessToken)return null;
       history.replaceState(null,'',`${location.pathname}${location.search}`);
       if(callbackError)throw new Error(callbackError);
