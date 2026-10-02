@@ -169,10 +169,14 @@ create table public.audit_log (
   created_at timestamptz not null default now()
 );
 
--- إكمال ملف العضو لا يمنح اعتمادًا. المشرف يعتمد العضو صراحةً عبر إجراء موثوق بالخادم.
+create unique index first_admin_bootstrap_once on public.audit_log(action)
+where action='first_admin_bootstrap';
+
 create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path=public as $$
-declare requested public.member_role;
+declare
+  requested public.member_role;
+  bootstrap_id bigint;
 begin
   if exists(select 1 from public.settings where key='system_closed' and value='true'::jsonb)
     or exists(select 1 from public.settings where key='registration_open' and value='false'::jsonb) then
@@ -180,11 +184,22 @@ begin
   end if;
   requested := case when new.raw_user_meta_data->>'requested_role' in ('player','follower')
     then (new.raw_user_meta_data->>'requested_role')::public.member_role else 'follower'::public.member_role end;
+  insert into public.audit_log(action,entity,entity_id,details)
+  values('first_admin_bootstrap','profiles',new.id::text,'{"source":"registration"}'::jsonb)
+  on conflict do nothing returning id into bootstrap_id;
   insert into public.profiles(id,display_name,role,status,player_data)
-  values(new.id,coalesce(new.raw_user_meta_data->>'display_name','عضو جديد'),requested,'pending',coalesce(new.raw_user_meta_data->'player_data','{}'::jsonb));
-  insert into public.role_requests(user_id,requested_role,status) values(new.id,requested,'pending');
+  values(new.id,coalesce(new.raw_user_meta_data->>'display_name','عضو جديد'),
+    case when bootstrap_id is not null then 'super_admin'::public.member_role else requested end,
+    case when bootstrap_id is not null then 'approved'::public.member_status else 'pending'::public.member_status end,
+    coalesce(new.raw_user_meta_data->'player_data','{}'::jsonb));
+  if bootstrap_id is not null then
+    update public.profiles set approved_at=now(),approved_by=new.id where id=new.id;
+  else
+    insert into public.role_requests(user_id,requested_role,status) values(new.id,requested,'pending');
+  end if;
   return new;
 end; $$;
+revoke all on function public.handle_new_user() from public,anon,authenticated;
 create trigger on_auth_user_created after insert on auth.users
 for each row execute procedure public.handle_new_user();
 

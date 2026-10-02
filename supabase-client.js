@@ -9,26 +9,44 @@
   const normalize = v => String(v || '').replace(/\/+$/, '');
   const configured = () => /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(normalize(config.url)) && typeof config.anonKey === 'string' && config.anonKey.length > 20;
   const storeSession = v => { session = v; if (v) sessionStorage.setItem(SESSION_KEY, JSON.stringify(v)); else sessionStorage.removeItem(SESSION_KEY); };
+  async function fetchData(url, options) {
+    const controller = new AbortController();
+    let timeout;
+    const deadline = new Promise((resolve, reject) => {
+      timeout = setTimeout(() => {
+        reject(new Error('استغرق الاتصال أكثر من ١٥ ثانية. تحقق من الإنترنت وحاول مرة أخرى.'));
+        controller.abort();
+      }, 15000);
+    });
+    const operation = async () => {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      const text = await response.text();
+      let data;
+      try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+      if (!response.ok) {
+        const error = new Error(data?.msg || data?.message || data?.error_description || (typeof data?.error === 'string' ? data.error : '') || `تعذر الاتصال بخدمة الدوري (${response.status})`);
+        error.status = response.status;
+        error.code = data?.error_code || data?.code;
+        throw error;
+      }
+      return data;
+    };
+    try {
+      return await Promise.race([operation(), deadline]);
+    } catch (error) {
+      if (error.name === 'AbortError') throw new Error('استغرق الاتصال أكثر من ١٥ ثانية. تحقق من الإنترنت وحاول مرة أخرى.');
+      if (error instanceof TypeError) throw new Error('تعذر الوصول إلى Supabase. تحقق من رابط المشروع والإنترنت وإعدادات الاتصال.');
+      throw error;
+    } finally { clearTimeout(timeout); }
+  }
   async function request(path, { method='GET', body, token, query, headers={} }={}) {
     if (!configured()) throw new Error('أدخل رابط مشروع Supabase والمفتاح العام أولًا.');
     if (!token && session?.refresh_token) await validSession();
     const url = new URL(`${normalize(config.url)}/${path.replace(/^\//,'')}`);
     if (query) Object.entries(query).forEach(([k,v])=>url.searchParams.set(k,v));
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    let response;
-    try {
-      const bearerCandidate = token || session?.access_token || (config.anonKey.startsWith('eyJ') ? config.anonKey : '');
-      const bearer = bearerCandidate.startsWith('sb_publishable_') ? '' : bearerCandidate;
-      response = await fetch(url, { method, headers: { apikey: config.anonKey, ...(bearer ? {Authorization:`Bearer ${bearer}`} : {}), 'Content-Type':'application/json', ...headers }, body: body===undefined?undefined:JSON.stringify(body), signal:controller.signal });
-    } catch (err) {
-      if (err.name === 'AbortError') throw new Error('استغرق الاتصال أكثر من ١٥ ثانية. تحقق من الإنترنت وحاول مرة أخرى.');
-      if (err instanceof TypeError) throw new Error('تعذر الوصول إلى Supabase. تحقق من رابط المشروع والإنترنت وإعدادات الاتصال.');
-      throw err;
-    } finally { clearTimeout(timeout); }
-    const text = await response.text(); let data; try { data=text?JSON.parse(text):null; } catch { data=text; }
-    if (!response.ok) { const err = new Error(data?.msg || data?.message || data?.error_description || `تعذر الاتصال بخدمة الدوري (${response.status})`); err.status=response.status; throw err; }
-    return data;
+    const bearerCandidate = token || session?.access_token || (config.anonKey.startsWith('eyJ') ? config.anonKey : '');
+    const bearer = bearerCandidate.startsWith('sb_publishable_') ? '' : bearerCandidate;
+    return fetchData(url, { method, headers: { apikey: config.anonKey, ...(bearer ? {Authorization:`Bearer ${bearer}`} : {}), 'Content-Type':'application/json', ...headers }, body: body===undefined?undefined:JSON.stringify(body) });
   }
   async function refresh() {
     if (!session?.refresh_token) return null;
@@ -55,8 +73,7 @@
     async uploadObject(bucket,path,blob,contentType='application/octet-stream'){
       const s=await validSession();if(!s?.access_token)throw new Error('انتهت جلسة الدخول. سجّل الدخول مجددًا.');
       const objectPath=path.split('/').map(encodeURIComponent).join('/');
-      const response=await fetch(`${normalize(config.url)}/storage/v1/object/${encodeURIComponent(bucket)}/${objectPath}`,{method:'POST',headers:{apikey:config.anonKey,Authorization:`Bearer ${s.access_token}`,'Content-Type':contentType,'x-upsert':'true'},body:blob});
-      if(!response.ok){let detail='';try{const data=await response.json();detail=data.message||data.error||''}catch{}throw new Error(detail||`تعذر رفع الصورة (${response.status})`)}return response.json();
+      return fetchData(`${normalize(config.url)}/storage/v1/object/${encodeURIComponent(bucket)}/${objectPath}`,{method:'POST',headers:{apikey:config.anonKey,Authorization:`Bearer ${s.access_token}`,'Content-Type':contentType,'x-upsert':'true'},body:blob});
     },
     async signedObjectUrls(bucket,paths,expiresIn=3600){
       if(!paths.length)return{};const rows=await request(`storage/v1/object/sign/${encodeURIComponent(bucket)}`,{method:'POST',body:{expiresIn,paths}});

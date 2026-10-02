@@ -64,6 +64,81 @@ function renderHomeResults(){const box=$('#homeResults');if(!box)return;if(!stat
 function showDataStatus(message,kind='info'){const box=$('#systemNotice');if(!box)return;if(!message){box.textContent='';box.classList.add('hide');box.classList.remove('error','success');return}box.textContent=message;box.classList.remove('hide','error','success');if(kind==='error')box.classList.add('error')}
 async function loadPublicLeague(){if(!LeagueDB.configured)return;try{const [ts,ms,players,ps,ns,ars]=await Promise.all([LeagueDB.table('public_tournaments',{select:'id,name,status,capacity,week_start,week_end,draw_at',filters:{status:'in.(registration,scheduled,active,completed)'},order:'created_at.desc',limit:1}),LeagueDB.table('public_matches',{select:'id,tournament_id,round_name,round_number,match_number,team1,team2,score1,score2,winner,match_at,status',order:'round_number.asc,match_number.asc'}),LeagueDB.table('public_players',{select:'id,display_name,team,position',limit:100}),LeagueDB.table('public_player_stats',{select:'player_id,goals,assists,appearances,motm_count'}),LeagueDB.table('public_announcements',{select:'id,title,body,image_url,created_at,published',filters:{published:'eq.true'},order:'created_at.desc'}),LeagueDB.table('public_archives',{select:'id,season,winner,stats,archived_at',order:'archived_at.desc',limit:20})]);state.remoteTournament=ts?.[0]||null;state.matches=(ms||[]).filter(m=>m.tournament_id===state.remoteTournament?.id).map(m=>({id:m.id,home:m.team1||'بانتظار الفريق',away:m.team2||'بانتظار الفريق',date:m.match_at?new Date(m.match_at).toLocaleDateString('ar-MA'):'',time:m.match_at?new Date(m.match_at).toLocaleTimeString('ar-MA',{hour:'2-digit',minute:'2-digit'}):'يحدد لاحقًا',round:m.round_name,score:m.score1==null?'—':`${m.score1} – ${m.score2}`,winner:m.winner,status:m.status}));state.drawTeams=[...new Set((ms||[]).filter(m=>m.tournament_id===state.remoteTournament?.id&&m.round_number===1).flatMap(m=>[m.team1,m.team2].filter(Boolean)))];state.drawn=state.drawTeams.length>0;state.players=(players||[]).map(p=>{const s=ps?.find(x=>x.player_id===p.id)||{};return{name:p.display_name,team:p.team||'—',role:p.position||'لاعب',goals:s.goals||0,matches:s.appearances||0,motm:s.motm_count||0,badge:'لاعب معتمد'}});state.news=(ns||[]).map(n=>({title:n.title,date:new Date(n.created_at).toLocaleDateString('ar-MA'),body:n.body}));state.archives=(ars||[]).map(a=>({season:a.season,winner:a.winner,stats:a.stats,archivedAt:a.archived_at}));showDataStatus('');renderHomeResults();save();const page=location.hash.slice(1);if(page&&page!=='home')renderPage(page)}catch(err){$('#connectionText').textContent='قاعدة البيانات تحتاج إعداد';showDataStatus('تعذر تحميل النتائج المنشورة. في Supabase SQL Editor شغّل schema.sql ثم public-read-access.sql. التفاصيل: '+err.message,'error')}}
 async function checkConnectedAuth(){if(!LeagueDB.configured)return;$('#connectionText').textContent='جارٍ تحميل النتائج…';try{const profile=await LeagueDB.profile();if(!profile){showAuthGate();$('#connectionText').textContent='تصفح عام';await loadPublicLeague();return}if(profile.status!=='approved'){showAuthGate();$('#connectionText').textContent='تصفح عام · الحساب بانتظار الموافقة';await loadPublicLeague();return}await loadApprovedMember(profile)}catch(err){showAuthGate();$('#connectionText').textContent='تصفح عام';await loadPublicLeague();if(!LeagueDB.configured)toast(`تعذر اتصال قاعدة البيانات: ${err.message}`)}}
+function authErrorMessage(error) {
+  if (error.code === 'invalid_credentials' || /invalid login credentials/i.test(error.message)) return 'البريد الإلكتروني أو كلمة المرور غير صحيحة. تحقق منهما وحاول مجددًا.';
+  if (error.code === 'email_not_confirmed' || /email not confirmed/i.test(error.message)) return 'أكد بريدك الإلكتروني من رسالة التسجيل، ثم حاول الدخول مجددًا.';
+  return error.message || 'تعذر تسجيل الدخول. حاول مرة أخرى.';
+}
+async function finishAuthenticatedLogin(email) {
+  const profile = await LeagueDB.profile();
+  if (!profile) throw new Error('تم التحقق من كلمة المرور، لكن ملف حسابك غير موجود. يحتاج مالك المشروع إلى مراجعة ملف العضوية في قاعدة البيانات.');
+  if (profile.status === 'approved') {
+    $('#authDialog').close();
+    loadApprovedMember(profile).catch(error => toast(`دخلت للحساب، لكن تعذر تحميل بيانات الدوري: ${error.message}`));
+    toast('مرحبًا بعودتك');
+  } else {
+    const message = profile.status === 'suspended' ? 'حسابك موقوف. تواصل مع إدارة الدوري.' : profile.status === 'rejected' ? 'تم رفض طلبك. تواصل مع إدارة الدوري.' : 'تم تسجيل الدخول، لكن حسابك بانتظار موافقة المشرف. إذا كنت المالك، يلزم اعتماد حسابك من إعدادات قاعدة البيانات.';
+    $('#authNotice').textContent = message;
+    showAuthGate(message);
+    if (profile.status === 'rejected') rejectionGateMessage().then(reason => toast(reason)).catch(() => {});
+  }
+  if (localStorage.getItem(pendingAvatarKey(email))) uploadPendingAvatar(email).catch(error => toast(`دخلت للحساب، لكن تعذر رفع الصورة الآن: ${error.message}`));
+}
+async function submitAuth() {
+  const button = $('#authSubmit');
+  if (button.disabled) return;
+  const mode = authMode;
+  const email = $('#authEmail').value.trim();
+  const password = $('#authPassword').value;
+  const name = $('#authName').value.trim();
+  if (!LeagueDB.configured) {
+    $('#authNotice').textContent = 'تسجيل الدخول غير مفعّل بعد. راجع إعداد اتصال Supabase ثم أعد المحاولة.';
+    $('#configKey').value = LeagueDB.config.anonKey || '';
+    $('#configDialog').showModal();
+    return;
+  }
+  if (!email || !password || (mode === 'signup' && !name)) {
+    const message = !email || !password ? 'أدخل البريد الإلكتروني وكلمة المرور.' : 'أدخل الاسم الكامل.';
+    $('#authNotice').textContent = message;
+    toast(message);
+    return;
+  }
+  const oldButtonText = button.textContent;
+  button.disabled = true;
+  $('#authMode').disabled = true;
+  button.textContent = mode === 'login' ? 'جارٍ التحقق من الدخول…' : 'جارٍ إرسال الطلب…';
+  $('#authNotice').textContent = button.textContent;
+  try {
+    if (mode === 'login') {
+      await LeagueDB.signIn(email, password);
+      button.textContent = 'جارٍ تحميل حسابك…';
+      $('#authNotice').textContent = 'تم التحقق من الدخول. جارٍ تحميل حسابك…';
+      await finishAuthenticatedLogin(email);
+    } else {
+      const role = $('#authRole').value;
+      const file = $('#authPhoto').files?.[0];
+      const avatar = role === 'player' && file ? await compressAvatar(file) : null;
+      const result = await LeagueDB.signUp({ email, password, name, role });
+      if (avatar) localStorage.setItem(pendingAvatarKey(email), avatar);
+      if (result?.access_token) {
+        button.textContent = 'جارٍ تحميل حسابك…';
+        $('#authNotice').textContent = 'تم إنشاء الحساب. جارٍ التحقق من حالته…';
+        await finishAuthenticatedLogin(email);
+      } else {
+        showAuthGate('تحقق من بريدك الإلكتروني، ثم سجّل الدخول. يحدد الخادم صلاحيات حسابك بعد تأكيد البريد.');
+        toast('تم إنشاء الحساب. تحقق من بريدك الإلكتروني.');
+      }
+    }
+  } catch (error) {
+    const message = authErrorMessage(error);
+    $('#authNotice').textContent = message;
+    toast(message);
+  } finally {
+    button.disabled = false;
+    $('#authMode').disabled = false;
+    button.textContent = oldButtonText;
+  }
+}
 document.addEventListener('click',async e=>{
  if(e.target.closest('#openAuth'))authDialog('login');
  if(e.target.closest('#logoutBtn')){try{await LeagueDB.signOut();remoteProfile=null;showAuthGate();$('#connectionText').textContent='متصل · غير مسجل';$('#connectionBadge').classList.remove('connected');toast('تم تسجيل الخروج')}catch(err){toast(err.message)}}
@@ -73,7 +148,7 @@ document.addEventListener('click',async e=>{
  if(e.target.closest('#setupConnection')||e.target.closest('#connectionSettings')){const c=LeagueDB.config;$('#configUrl').value=c.url||'';$('#configKey').value=c.anonKey||'';$('#vapidKey').value=c.vapidPublicKey||'';$('#configDialog').showModal()}
  if(e.target.closest('#configClose'))$('#configDialog').close();
  if(e.target.closest('#saveConfig')){try{await LeagueDB.saveConfig($('#configUrl').value,$('#configKey').value,$('#vapidKey').value);location.reload()}catch(err){toast(err.message)}}
- if(e.target.closest('#authSubmit')){const email=$('#authEmail').value.trim(),password=$('#authPassword').value,name=$('#authName').value.trim(),button=$('#authSubmit');if(!LeagueDB.configured){const message='تسجيل الدخول غير مفعّل بعد. أدخل مفتاح Supabase العام من إعداد الاتصال ثم أعد المحاولة.';$('#authNotice').textContent=message;$('#configKey').value=LeagueDB.config.anonKey||'';$('#configDialog').showModal();return}if(!email||!password){const message='أدخل البريد الإلكتروني وكلمة المرور.';$('#authNotice').textContent=message;toast(message);return}button.disabled=true;const oldButtonText=button.textContent;button.textContent=authMode==='login'?'جارٍ التحقق من الدخول…':'جارٍ إرسال الطلب…';$('#authNotice').textContent=button.textContent;try{if(authMode==='login'){await LeagueDB.signIn(email,password);$('#authNotice').textContent='تم تسجيل الدخول. جارٍ تحميل حسابك…';try{await uploadPendingAvatar(email)}catch(err){toast(`دخلت للحساب، لكن تعذر رفع الصورة: ${err.message}`)}const profile=await LeagueDB.profile();if(profile?.status==='approved'){await loadApprovedMember(profile);$('#authDialog').close();toast('مرحبًا بعودتك')}else{showAuthGate(profile?.status==='rejected'?await rejectionGateMessage():'حسابك بانتظار موافقة المشرف.');toast('لم يُعتمد حسابك بعد')}}else{if(!name){const message='أدخل الاسم الكامل.';$('#authNotice').textContent=message;toast(message);return}const role=$('#authRole').value,file=$('#authPhoto').files?.[0];let avatar=null;if(role==='player'&&file)avatar=await compressAvatar(file);const result=await LeagueDB.signUp({email,password,name,role});if(avatar)localStorage.setItem(pendingAvatarKey(email),avatar);if(result?.access_token&&avatar){try{await uploadPendingAvatar(email)}catch(err){toast(`سُجل الطلب، لكن تعذر رفع الصورة الآن: ${err.message}`)}}$('#authDialog').close();showAuthGate(result?.access_token?'تم استلام طلبك. ستظهر المنصة بعد موافقة المشرف.':'تحقق من بريدك الإلكتروني، ثم سجّل الدخول من هذا المتصفح لرفع الصورة وانتظر موافقة المشرف.');toast('تم إرسال طلب الانضمام')} }catch(err){$('#authNotice').textContent=err.message;toast(err.message)}finally{button.disabled=false;button.textContent=oldButtonText}}
+ if(e.target.closest('#authSubmit'))await submitAuth();
  if(e.target.closest('#notifyBtn')&&remoteProfile){try{const rows=await LeagueDB.getMyNotifications();showNotifications(rows);const unread=rows.filter(n=>!n.read_at).map(n=>n.id);if(unread.length)await LeagueDB.update('notifications',{id:`in.(${unread.join(',')})`,user_id:`eq.${LeagueDB.session.user.id}`},{read_at:new Date().toISOString()});if('Notification'in window&&Notification.permission==='default'){$('#notificationPop').insertAdjacentHTML('beforeend','<button class="text-action" id="enablePush">تفعيل إشعارات المتصفح</button>')}}catch(err){toast(err.message)}}
  if(e.target.closest('#enablePush'))enablePushNotifications();
 });
