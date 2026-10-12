@@ -25,9 +25,9 @@
     return url.toString();
   }
 
-  async function bridgeVerifiedUser(user, requestedRole) {
-    if (!user.emailVerification) {
-      throw new Error('تعذر تأكيد البريد عبر الكود. أرسل كودًا جديدًا من الموقع ثم أدخله.');
+  async function bridgeVerifiedUser(user, requestedRole, allowEmailOtp = false) {
+    if (!user.emailVerification && !allowEmailOtp) {
+      throw new Error('هذا الحساب يحتاج إلى تأكيد البريد من إعدادات Appwrite.');
     }
     const token = await account.createJWT();
     const headers = { apikey: sbConfig.anonKey, 'Content-Type': 'application/json' };
@@ -78,22 +78,18 @@
       let pending;
       try { pending = JSON.parse(sessionStorage.getItem(key) || 'null'); } catch { pending = null; }
       if (!pending?.userId) throw new Error('اطلب كودًا جديدًا من بريدك الإلكتروني أولًا.');
-      let user = null;
       try {
-        user = await account.get();
+        await account.deleteSession({ sessionId: 'current' });
       } catch (error) {
         if (error.code !== 401) throw error;
       }
-      if (!user || (user.email || '').toLowerCase() !== email.toLowerCase()) {
-        if (user) await account.deleteSession({ sessionId: 'current' });
-        await account.createSession({ userId: pending.userId, secret });
-        user = await account.get();
-      }
+      await account.createSession({ userId: pending.userId, secret });
+      let user = await account.get();
       if (pending.name && !user.name) {
         await account.updateName({ name: pending.name });
         user = await account.get();
       }
-      await bridgeVerifiedUser(user, pending.role);
+      await bridgeVerifiedUser(user, pending.role, true);
       sessionStorage.removeItem(key);
       return window.LeagueDB.session;
     },
