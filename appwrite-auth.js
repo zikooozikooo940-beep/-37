@@ -57,6 +57,7 @@
     async signUp({ email, password, name, role }) {
       requireReady();
       const user = await account.create({ userId: sdk.ID.unique(), email, password, name });
+      await account.createEmailPasswordSession({ email, password });
       localStorage.setItem('appwrite-pending-role:' + email.toLowerCase(), role === 'player' ? 'player' : 'follower');
       await account.createVerification({ url: callbackUrl('verify') });
       return { needsVerification: true, user };
