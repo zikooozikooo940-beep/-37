@@ -4,16 +4,16 @@
 
 ## 1. إعداد المنصة
 
-في Appwrite Console افتح المشروع \`6ab6b317000768639ecc\` ثم **Settings → Platforms → Add platform → Web**. أضف \`localhost\` للاستخدام المحلي، وأضف نطاق الموقع المنشور عند النشر.
+في Appwrite Console افتح المشروع `6ab6b317000768639ecc` ثم **Settings → Platforms → Add platform → Web**. أضف `localhost` للاستخدام المحلي، وأضف نطاق الموقع المنشور عند النشر.
 
 ## 2. إعداد جدول الملفات الشخصية
 
-من **Databases** أنشئ قاعدة بيانات بالمعرّف \`league-profiles\`، ثم جدولًا بالمعرّف \`profiles\`، وأنشئ العمودين التاليين:
+من **Databases** أنشئ قاعدة بيانات بالمعرّف `league-profiles`، ثم جدولًا بالمعرّف `profiles`، وأنشئ العمودين التاليين:
 
 | العمود | النوع | مطلوب |
 |---|---|---|
-| \`displayName\` | Varchar / String | نعم |
-| \`bio\` | Text | لا |
+| `displayName` | Varchar / String | نعم |
+| `bio` | Text | لا |
 
 فعّل **Row security**. في صلاحيات الجدول، امنح دور **Users** صلاحية **Create** فقط. لا تمنح صلاحية قراءة أو تحديث عامة على مستوى الجدول؛ التطبيق يضع صلاحيات القراءة والتحديث لكل صف على حساب صاحبه فقط.
 
