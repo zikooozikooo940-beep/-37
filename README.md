@@ -16,7 +16,7 @@ python -m http.server 4173
 
 1. أنشئ مشروع Supabase، ثم شغّل `supabase/schema.sql` وبعده `supabase/public-read-access.sql` من SQL Editor. الملف الثاني يتيح للزوار قراءة النتائج المنشورة عبر عروض محدودة الحقول. ملف `supabase/seed.sql` فارغ عمدًا حتى لا يضيف بيانات بطولة غير مؤكدة.
 2. ضع رابط المشروع ومفتاح `anon` العام في `config.js`، أو افتح ⚙ في شارة الاتصال أسفل الصفحة. لا تضع `service_role` في ملفات الموقع.
-3. أنشئ حساب المشرف العام من نموذج التسجيل. من SQL Editor، عيّن حسابه الأول يدويًا بعد مراجعة بريده:
+3. أنشئ حساب Appwrite وأكّد بريده، ثم سجّل الدخول مرة واحدة كي ينشئ جسر Appwrite↔Supabase ملف العضو. من SQL Editor، عيّن حساب المالك الأول بعد مراجعة البريد:
 
 ```sql
 update public.profiles
@@ -31,6 +31,7 @@ where user_id = (select id from auth.users where email = 'ADMIN_EMAIL') and stat
 4. انشر الدوال الخادمية الثلاث:
 
 ```powershell
+supabase functions deploy appwrite-auth-bridge
 supabase functions deploy review-request
 supabase functions deploy send-notification
 supabase functions deploy record-result
@@ -44,7 +45,7 @@ supabase functions deploy record-result
 
 ## حسابات Appwrite والملفات الشخصية
 
-يمكن للمستخدم إنشاء حساب Appwrite مستقل وحفظ اسم العرض والنبذة في Appwrite. تبقى مصادقة Supabase وبيانات الدوري ووظائف الإدارة في Supabase. راجع [APPWRITE_SETUP.md](APPWRITE_SETUP.md) لإنشاء قاعدة البيانات والجدول وضبط صلاحيات الصفوف.
+يستخدم تسجيل الدخول الأساسي Appwrite. بعد تأكيد بريد Appwrite، يتحقق جسر خادمي من الحساب ويصدر جلسة Supabase حتى تبقى سياسات RLS وصلاحيات الدوري كما هي. الجسر لا يرفع أي دور؛ دور المشرف العام يبقى محفوظًا في `public.profiles` ولا يُمنح إلا بإجراء المالك في Supabase. راجع [APPWRITE_SETUP.md](APPWRITE_SETUP.md) لإعداد منصة Appwrite ونشر الجسر.
 
 ## ما لم يُجهز للنشر الحي بعد
 
