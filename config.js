@@ -3,7 +3,7 @@
 window.LEAGUE_SUPABASE = {
   url: 'https://qqwdvukihmxfugonoixv.supabase.co',
   anonKey: 'sb_publishable_7r9dkcCvWwDOa2bl2Hy0kA_3L40c5se',
-  vapidPublicKey: ''
+  vapidPublicKey: 'BG12_UN2aPJtl6pQvjETP44wn-upqpRbrN2Ess4Mf8F3MmXFmrTY8mg22XuFHB4t-a8fJTiThs7S0Ep9RKMOYG8'
 };
 
 window.LEAGUE_APPWRITE = {
