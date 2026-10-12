@@ -78,7 +78,9 @@
       try {
         const user = await account.get();
         const currentEmail = window.LeagueDB.session?.user?.email?.toLowerCase();
-        if (currentEmail && currentEmail === (user.email || '').toLowerCase()) return window.LeagueDB.session;
+        if (currentEmail && currentEmail === (user.email || '').toLowerCase()) {
+          try { if (await window.LeagueDB.profile()) return window.LeagueDB.session; } catch { /* re-bridge an expired Supabase session */ }
+        }
         return await bridgeVerifiedUser(user, 'follower');
       } catch (error) {
         if (error.code === 401) return null;
