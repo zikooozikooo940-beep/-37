@@ -99,6 +99,7 @@
 
   async function signIn(email, password) {
     await account.createEmailPasswordSession({ email, password });
+    await window.AppwriteAuth.restoreSession();
     const user = await account.get();
     const row = await getOrCreateProfile(user);
     showProfile(user, row);
@@ -173,7 +174,8 @@
   $('appwriteSignOut')?.addEventListener('click', async () => {
     try {
       requireSdk();
-      await account.deleteSession({ sessionId: 'current' });
+      await window.AppwriteAuth.signOut();
+      await window.LeagueDB.signOut();
       showForm('login');
       setNotice('تم تسجيل الخروج من Appwrite.', false);
     } catch (error) {
