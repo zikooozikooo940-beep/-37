@@ -27,7 +27,7 @@
 
   async function bridgeVerifiedUser(user, requestedRole) {
     if (!user.emailVerification) {
-      throw new Error('أكد بريدك الإلكتروني من رسالة Appwrite أولًا، ثم سجّل الدخول من جديد.');
+      throw new Error('تعذر تأكيد البريد عبر الكود. أرسل كودًا جديدًا من الموقع ثم أدخله.');
     }
     const token = await account.createJWT();
     const headers = { apikey: sbConfig.anonKey, 'Content-Type': 'application/json' };
@@ -63,13 +63,29 @@
       return { needsVerification: true, user };
     },
 
-    async signIn(email, password, requestedRole) {
+    async sendEmailCode({ email, name, role }) {
       requireReady();
-      await account.createEmailPasswordSession({ email, password });
-      const user = await account.get();
-      const role = localStorage.getItem('appwrite-pending-role:' + email.toLowerCase()) || requestedRole;
-      await bridgeVerifiedUser(user, role);
-      localStorage.removeItem('appwrite-pending-role:' + email.toLowerCase());
+      const generatedUserId = sdk.ID.unique();
+      const token = await account.createEmailToken({ userId: generatedUserId, email });
+      const userId = token.userId || generatedUserId;
+      sessionStorage.setItem('appwrite-email-otp:' + email.toLowerCase(), JSON.stringify({ userId, name: name || '', role: role === 'player' ? 'player' : 'follower' }));
+      return { userId, expire: token.expire };
+    },
+
+    async verifyEmailCode(email, secret) {
+      requireReady();
+      const key = 'appwrite-email-otp:' + email.toLowerCase();
+      let pending;
+      try { pending = JSON.parse(sessionStorage.getItem(key) || 'null'); } catch { pending = null; }
+      if (!pending?.userId) throw new Error('اطلب كودًا جديدًا من بريدك الإلكتروني أولًا.');
+      await account.createSession({ userId: pending.userId, secret });
+      let user = await account.get();
+      if (pending.name && !user.name) {
+        await account.updateName({ name: pending.name });
+        user = await account.get();
+      }
+      await bridgeVerifiedUser(user, pending.role);
+      sessionStorage.removeItem(key);
       return window.LeagueDB.session;
     },
 
