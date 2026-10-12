@@ -5,3 +5,10 @@ window.LEAGUE_SUPABASE = {
   anonKey: 'sb_publishable_7r9dkcCvWwDOa2bl2Hy0kA_3L40c5se',
   vapidPublicKey: ''
 };
+
+window.LEAGUE_APPWRITE = {
+  endpoint: 'https://fra.cloud.appwrite.io/v1',
+  projectId: '6ab6b317000768639ecc',
+  databaseId: 'league-profiles',
+  profilesTableId: 'profiles'
+};
