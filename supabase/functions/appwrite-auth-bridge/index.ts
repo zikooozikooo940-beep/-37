@@ -30,12 +30,10 @@ Deno.serve(async (request) => {
     });
     if (!appwriteResponse.ok) return json({ error: "Appwrite session is invalid or expired" }, 401);
     const appwriteUser = await appwriteResponse.json();
-    if (appwriteUser.emailVerification !== true) {
-      return json({ error: "أكد بريد Appwrite قبل دخول الدوري." }, 403);
-    }
-
+    // A valid Appwrite session already proves authentication. Email OTP is a separate
+    // login flow and does not set the optional emailVerification profile flag.
     const email = String(appwriteUser.email || "").trim().toLowerCase();
-    if (!email) return json({ error: "Verified email is required" }, 403);
+    if (!email) return json({ error: "Authenticated email is required" }, 403);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
