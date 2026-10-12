@@ -1,0 +1,2 @@
+[functions.appwrite-auth-bridge]
+verify_jwt = false
