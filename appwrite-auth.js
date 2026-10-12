@@ -27,7 +27,7 @@
 
   async function bridgeVerifiedUser(user, requestedRole) {
     if (!user.emailVerification) {
-      throw new Error('أكد بريدك الإلكتروني من رسالة Appwrite أولًا، ثم سجّل الدخول من جديد.');
+      throw new Error('تعذر تأكيد البريد عبر الكود. أرسل كودًا جديدًا من الموقع ثم أدخله.');
     }
     const token = await account.createJWT();
     const headers = { apikey: sbConfig.anonKey, 'Content-Type': 'application/json' };
