@@ -44,6 +44,7 @@
   const auth = {
     get configured(){return configured();}, get config(){return {url:normalize(config.url),anonKey:config.anonKey,vapidPublicKey:config.vapidPublicKey};},
     get session(){return session;},
+    adoptSession(value){if(!value?.access_token||!value?.refresh_token||!value?.user?.id)throw new Error('تعذر استلام جلسة الدوري من Appwrite.');storeSession(value);return session;}
     async signIn(email,password){const v=await request('auth/v1/token?grant_type=password',{method:'POST',body:{email,password},token:config.anonKey});storeSession(v);return v;},
     get recoveryPending(){return recoveryPending;},
     async requestPasswordReset(email){const redirectTo=`${location.origin}${location.pathname}${location.search}`;return request('auth/v1/recover',{method:'POST',query:{redirect_to:redirectTo},body:{email},token:config.anonKey});},
