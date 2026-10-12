@@ -25,10 +25,7 @@
     return url.toString();
   }
 
-  async function bridgeVerifiedUser(user, requestedRole, allowEmailOtp = false) {
-    if (!user.emailVerification && !allowEmailOtp) {
-      throw new Error('هذا الحساب يحتاج إلى تأكيد البريد من إعدادات Appwrite.');
-    }
+  async function bridgeVerifiedUser(user, requestedRole) {
     const token = await account.createJWT();
     const headers = { apikey: sbConfig.anonKey, 'Content-Type': 'application/json' };
     if (sbConfig.anonKey.startsWith('eyJ')) headers.Authorization = 'Bearer ' + sbConfig.anonKey;
@@ -89,7 +86,7 @@
         await account.updateName({ name: pending.name });
         user = await account.get();
       }
-      await bridgeVerifiedUser(user, pending.role, true);
+      await bridgeVerifiedUser(user, pending.role);
       sessionStorage.removeItem(key);
       return window.LeagueDB.session;
     },
