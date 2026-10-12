@@ -57,6 +57,7 @@
   <script src="config.js?v=reset1"></script>
   <!-- الواجهة العامة تبقى متاحة للزوار؛ تسجيل الدخول اختياري للإدارة. -->
   <script src="supabase-client.js?v=reset1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@28.1.0"></script>
   <script src="appwrite-client.js?v=1"></script>
   <script>
     window.openLeagueConfig=function(event){event?.stopPropagation();const c=window.LeagueDB?.config||{};document.getElementById("configUrl").value=c.url||"https://qqwdvukihmxfugonoixv.supabase.co";document.getElementById("configKey").value=c.anonKey||"";document.getElementById("vapidKey").value=c.vapidPublicKey||"";document.getElementById("configNotice").textContent="أدخل المفتاح العام anon أو publishable من إعدادات مشروع Supabase. لا تدخل service_role.";const d=document.getElementById("configDialog");if(!d.open)d.showModal()};
