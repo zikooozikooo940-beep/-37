@@ -78,8 +78,17 @@
       let pending;
       try { pending = JSON.parse(sessionStorage.getItem(key) || 'null'); } catch { pending = null; }
       if (!pending?.userId) throw new Error('اطلب كودًا جديدًا من بريدك الإلكتروني أولًا.');
-      await account.createSession({ userId: pending.userId, secret });
-      let user = await account.get();
+      let user = null;
+      try {
+        user = await account.get();
+      } catch (error) {
+        if (error.code !== 401) throw error;
+      }
+      if (!user || (user.email || '').toLowerCase() !== email.toLowerCase()) {
+        if (user) await account.deleteSession({ sessionId: 'current' });
+        await account.createSession({ userId: pending.userId, secret });
+        user = await account.get();
+      }
       if (pending.name && !user.name) {
         await account.updateName({ name: pending.name });
         user = await account.get();
