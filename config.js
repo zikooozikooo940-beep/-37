@@ -4,7 +4,6 @@ window.LEAGUE_SUPABASE = {
   url: 'https://qqwdvukihmxfugonoixv.supabase.co',
   anonKey: 'sb_publishable_7r9dkcCvWwDOa2bl2Hy0kA_3L40c5se',
   vapidPublicKey: ''
-}
 };
 
 window.LEAGUE_APPWRITE = {
