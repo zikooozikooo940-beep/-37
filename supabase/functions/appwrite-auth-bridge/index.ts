@@ -55,12 +55,14 @@ Deno.serve(async (request) => {
     }
 
     const requestedRole = body.requestedRole === "player" ? "player" : "follower";
+    const suppliedName = String(body.displayName || appwriteUser.name || "").trim().slice(0, 120);
+    const usableName = suppliedName && suppliedName !== "عضو جديد" ? suppliedName : "";
     if (!authUser) {
       const { data, error } = await admin.auth.admin.createUser({
         email,
         email_confirm: true,
         user_metadata: {
-          display_name: String(body.displayName || appwriteUser.name || "عضو جديد").slice(0, 120),
+          display_name: usableName || "عضو جديد",
           requested_role: requestedRole,
         },
       });
@@ -70,6 +72,22 @@ Deno.serve(async (request) => {
       const { data, error } = await admin.auth.admin.updateUserById(authUser.id, { email_confirm: true });
       if (error) throw error;
       authUser = data.user;
+    }
+
+    // Repair profiles created by an earlier bridge run that left the placeholder name.
+    if (usableName) {
+      const { data: profile, error: profileError } = await admin
+        .from("profiles")
+        .select("display_name")
+        .eq("id", authUser.id)
+        .maybeSingle();
+      if (profileError) throw profileError;
+      if (profile && (!profile.display_name || profile.display_name === "عضو جديد")) {
+        const { error } = await admin.from("profiles")
+          .update({ display_name: usableName })
+          .eq("id", authUser.id);
+        if (error) throw error;
+      }
     }
 
     // Keep the existing profiles.role/status untouched: an already-approved super_admin stays admin.
@@ -95,3 +113,4 @@ Deno.serve(async (request) => {
     return json({ error: "تعذر ربط حساب Appwrite بقاعدة الدوري. تحقق من إعدادات الدالة." }, 500);
   }
 });
+
