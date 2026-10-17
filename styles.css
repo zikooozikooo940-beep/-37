@@ -21,3 +21,6 @@
 .topbar #openAuth{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;min-height:36px;padding:0 12px;border:1px solid #a98748;border-radius:10px;background:linear-gradient(135deg,#d8b66d,#b88d48);color:#171910;font-size:10px;font-weight:800;line-height:1.25;box-shadow:0 5px 16px #c69d4a24;transition:transform .18s ease,filter .18s ease,box-shadow .18s ease}
 .topbar #openAuth:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 8px 20px #c69d4a38}
 .topbar #openAuth:focus-visible{outline:2px solid #f1d18d;outline-offset:3px}
+
+/* Hide the small icons beside the sidebar navigation labels. */
+.sidebar .nav-item i{display:none}
