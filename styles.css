@@ -12,3 +12,5 @@
 
 .system-notice{margin:0 0 16px;padding:13px 16px;border:1px solid #9c7438;border-radius:10px;background:#2b2417;color:#f5d493;line-height:1.8;font-size:12px}.system-notice.error{border-color:#a95353;background:#2c1919;color:#ffd0c8}.system-notice.success{display:none}
 
+
+.auth-guide{margin:12px 0;padding:10px 12px;border:1px solid #415044;border-radius:9px;background:#13201a;color:#e9e8df}.auth-guide summary{cursor:pointer;color:#e2c57d;font-weight:700}.auth-guide ol{margin:8px 0 0;padding-right:22px;line-height:1.8}.auth-guide li{padding-right:2px}.auth-guide li::marker{color:#e2c57d;font-weight:700}
