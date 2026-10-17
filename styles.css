@@ -16,3 +16,8 @@
 .request-person{display:flex;align-items:center;gap:11px;min-width:0}.request-avatar{width:46px;height:46px;flex:0 0 46px;border-radius:50%;object-fit:cover;border:2px solid #c8a75f;background:#22352a}.request-avatar-fallback{display:grid;place-items:center;color:#e2c57d;font-weight:800;font-size:16px}.request-person>div{min-width:0}.request-person p{margin:4px 0 0;color:#87938a;font-size:10px}.request-row{gap:12px}
 .promo-video-slot{min-height:260px;aspect-ratio:16/7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:1px dashed #53634f;border-radius:16px;background:radial-gradient(ellipse at center,#1a2a1e,#101712 72%);color:#aab4aa;font-size:12px}.promo-video-slot .brand-mark{width:82px;height:82px;border-radius:50%;background-size:contain}.promo-video-section{margin-top:24px}@media(max-width:620px){.promo-video-slot{min-height:185px;aspect-ratio:16/10}.request-row{align-items:center}.request-avatar{width:40px;height:40px;flex-basis:40px}}
 
+
+/* Header sign-in button: clear, compact, and consistent with the league's gold accent. */
+.topbar #openAuth{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;min-height:36px;padding:0 12px;border:1px solid #a98748;border-radius:10px;background:linear-gradient(135deg,#d8b66d,#b88d48);color:#171910;font-size:10px;font-weight:800;line-height:1.25;box-shadow:0 5px 16px #c69d4a24;transition:transform .18s ease,filter .18s ease,box-shadow .18s ease}
+.topbar #openAuth:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 8px 20px #c69d4a38}
+.topbar #openAuth:focus-visible{outline:2px solid #f1d18d;outline-offset:3px}
