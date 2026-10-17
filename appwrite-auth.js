@@ -82,7 +82,7 @@
       }
       await account.createSession({ userId: pending.userId, secret });
       let user = await account.get();
-      if (pending.name && !user.name) {
+      if (pending.name && pending.name.trim() !== user.name) {
         await account.updateName({ name: pending.name });
         user = await account.get();
       }
@@ -141,3 +141,4 @@
     }
   };
 })();
+
