@@ -39,6 +39,41 @@ Deno.serve(async (req) => {
     return Response.json({ error: message }, { status, headers: cors });
   }
   const roleRequest = reviewed[0];
+  if (decision === "approved" && roleRequest.requested_role === "player") {
+    const { data: applicant, error: applicantError } = await admin
+      .from("profiles")
+      .select("player_data")
+      .eq("id", roleRequest.user_id)
+      .maybeSingle();
+    if (applicantError) return Response.json({ error: "could_not_load_player_team_request" }, { status: 500, headers: cors });
+    const requestedTeam = String(applicant?.player_data?.requested_team || "").trim();
+    if (requestedTeam) {
+      const { data: seasons, error: seasonsError } = await admin
+        .from("tournaments")
+        .select("id")
+        .in("status", ["registration", "scheduled", "active"])
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (seasonsError) return Response.json({ error: "could_not_load_current_league" }, { status: 500, headers: cors });
+      const tournamentId = seasons?.[0]?.id;
+      if (tournamentId) {
+        const { data: fixtures, error: fixturesError } = await admin
+          .from("matches")
+          .select("team1,team2")
+          .eq("tournament_id", tournamentId)
+          .eq("round_number", 1);
+        if (fixturesError) return Response.json({ error: "could_not_load_participating_teams" }, { status: 500, headers: cors });
+        const officialTeams = new Set((fixtures || []).flatMap((match) => [match.team1, match.team2].filter(Boolean)));
+        if (officialTeams.has(requestedTeam)) {
+          const playerData = applicant.player_data || {};
+          const { error: teamError } = await admin.from("profiles")
+            .update({ player_data: { ...playerData, team: requestedTeam, requested_team: null } })
+            .eq("id", roleRequest.user_id);
+          if (teamError) return Response.json({ error: "could_not_assign_requested_team" }, { status: 500, headers: cors });
+        }
+      }
+    }
+  }
   const message = decision === "approved" ? "تمت الموافقة على طلبك. مرحبًا بك في دوري قاضي عياض." : `لم تتم الموافقة على طلب الانضمام. السبب: ${rejectionReason}`;
   const vapidPublic = Deno.env.get("VAPID_PUBLIC_KEY");
   const vapidPrivate = Deno.env.get("VAPID_PRIVATE_KEY");
