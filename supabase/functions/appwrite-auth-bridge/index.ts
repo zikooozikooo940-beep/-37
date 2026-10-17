@@ -76,26 +76,23 @@ Deno.serve(async (request) => {
       authUser = data.user;
     }
 
-    // Repair profiles created by an earlier bridge run that left the placeholder name.
-    if (usableName) {
-      const { data: profile, error: profileError } = await admin
-        .from("profiles")
-        .select("display_name,player_data,status")
-        .eq("id", authUser.id)
-        .maybeSingle();
-      if (profileError) throw profileError;
-      if (profile && (!profile.display_name || profile.display_name === "عضو جديد")) {
-        const { error } = await admin.from("profiles")
-          .update({ display_name: usableName })
-          .eq("id", authUser.id);
-        if (error) throw error;
-      }
-      if (profile?.status === "pending" && requestedRole === "player" && requestedTeam) {
-        const { error } = await admin.from("profiles")
-          .update({ player_data: { ...(profile.player_data || {}), requested_team: requestedTeam } })
-          .eq("id", authUser.id);
-        if (error) throw error;
-      }
+    // Repair pending profiles and save the player's requested team without assigning it.
+    const { data: profile, error: profileError } = await admin
+      .from("profiles")
+      .select("display_name,player_data,status")
+      .eq("id", authUser.id)
+      .maybeSingle();
+    if (profileError) throw profileError;
+    const profilePatch: Record<string, unknown> = {};
+    if (usableName && (!profile?.display_name || profile.display_name === "عضو جديد")) {
+      profilePatch.display_name = usableName;
+    }
+    if (profile?.status === "pending" && requestedRole === "player" && requestedTeam) {
+      profilePatch.player_data = { ...(profile.player_data || {}), requested_team: requestedTeam };
+    }
+    if (Object.keys(profilePatch).length) {
+      const { error } = await admin.from("profiles").update(profilePatch).eq("id", authUser.id);
+      if (error) throw error;
     }
 
     // Keep the existing profiles.role/status untouched: an already-approved super_admin stays admin.
