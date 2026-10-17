@@ -25,7 +25,7 @@
     return url.toString();
   }
 
-  async function bridgeVerifiedUser(user, requestedRole) {
+  async function bridgeVerifiedUser(user, requestedRole, requestedTeam = '') {
     const token = await account.createJWT();
     const headers = { apikey: sbConfig.anonKey, 'Content-Type': 'application/json' };
     if (sbConfig.anonKey.startsWith('eyJ')) headers.Authorization = 'Bearer ' + sbConfig.anonKey;
@@ -35,6 +35,7 @@
       body: JSON.stringify({
         appwriteJwt: token.jwt,
         requestedRole: requestedRole === 'player' ? 'player' : 'follower',
+        requestedTeam: requestedRole === 'player' ? String(requestedTeam || '').slice(0, 80) : '',
         displayName: user.name || ''
       })
     });
@@ -60,12 +61,12 @@
       return { needsVerification: true, user };
     },
 
-    async sendEmailCode({ email, name, role }) {
+    async sendEmailCode({ email, name, role, team }) {
       requireReady();
       const generatedUserId = sdk.ID.unique();
       const token = await account.createEmailToken({ userId: generatedUserId, email });
       const userId = token.userId || generatedUserId;
-      sessionStorage.setItem('appwrite-email-otp:' + email.toLowerCase(), JSON.stringify({ userId, name: name || '', role: role === 'player' ? 'player' : 'follower' }));
+      sessionStorage.setItem('appwrite-email-otp:' + email.toLowerCase(), JSON.stringify({ userId, name: name || '', role: role === 'player' ? 'player' : 'follower', team: role === 'player' ? String(team || '').slice(0, 80) : '' }));
       return { userId, expire: token.expire };
     },
 
@@ -86,7 +87,7 @@
         await account.updateName({ name: pending.name });
         user = await account.get();
       }
-      await bridgeVerifiedUser(user, pending.role);
+      await bridgeVerifiedUser(user, pending.role, pending.team);
       sessionStorage.removeItem(key);
       return window.LeagueDB.session;
     },
