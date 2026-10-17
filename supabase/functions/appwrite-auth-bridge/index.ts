@@ -55,6 +55,7 @@ Deno.serve(async (request) => {
     }
 
     const requestedRole = body.requestedRole === "player" ? "player" : "follower";
+    const requestedTeam = typeof body.requestedTeam === "string" ? body.requestedTeam.trim().slice(0, 80) : "";
     const suppliedName = String(body.displayName || appwriteUser.name || "").trim().slice(0, 120);
     const usableName = suppliedName && suppliedName !== "عضو جديد" ? suppliedName : "";
     if (!authUser) {
@@ -64,6 +65,7 @@ Deno.serve(async (request) => {
         user_metadata: {
           display_name: usableName || "عضو جديد",
           requested_role: requestedRole,
+          player_data: requestedRole === "player" && requestedTeam ? { requested_team: requestedTeam } : {},
         },
       });
       if (error) throw error;
@@ -78,13 +80,19 @@ Deno.serve(async (request) => {
     if (usableName) {
       const { data: profile, error: profileError } = await admin
         .from("profiles")
-        .select("display_name")
+        .select("display_name,player_data,status")
         .eq("id", authUser.id)
         .maybeSingle();
       if (profileError) throw profileError;
       if (profile && (!profile.display_name || profile.display_name === "عضو جديد")) {
         const { error } = await admin.from("profiles")
           .update({ display_name: usableName })
+          .eq("id", authUser.id);
+        if (error) throw error;
+      }
+      if (profile?.status === "pending" && requestedRole === "player" && requestedTeam) {
+        const { error } = await admin.from("profiles")
+          .update({ player_data: { ...(profile.player_data || {}), requested_team: requestedTeam } })
           .eq("id", authUser.id);
         if (error) throw error;
       }
