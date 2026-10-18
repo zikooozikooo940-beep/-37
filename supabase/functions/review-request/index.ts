@@ -25,12 +25,12 @@ Deno.serve(async (req) => {
   const { data: actor } = await admin.from("profiles").select("role,status").eq("id", auth.user.id).single();
   if (!actor || actor.role !== "super_admin" || actor.status !== "approved") return Response.json({ error: "super_admin_required" }, { status: 403, headers: cors });
   const { requestId, decision, reason = "" } = await req.json();
-  const rejectionReason = typeof reason === "string" ? reason.trim() : "";
-  if (!requestId || !["approved", "rejected"].includes(decision) || (decision === "rejected" && (rejectionReason.length < 3 || rejectionReason.length > 500))) return Response.json({ error: "invalid_request" }, { status: 400, headers: cors });
+  const reviewMessage = typeof reason === "string" ? reason.trim() : "";
+  if (!requestId || !["approved", "rejected"].includes(decision) || reviewMessage.length > 500 || (decision === "rejected" && reviewMessage.length < 3)) return Response.json({ error: "invalid_request" }, { status: 400, headers: cors });
   const { data: reviewed, error: reviewError } = await admin.rpc("review_join_request", {
     p_request_id: requestId,
     p_decision: decision,
-    p_reason: rejectionReason,
+    p_reason: reviewMessage,
     p_actor_id: auth.user.id,
   });
   if (reviewError || !reviewed?.[0]) {
@@ -74,7 +74,9 @@ Deno.serve(async (req) => {
       }
     }
   }
-  const message = decision === "approved" ? "تمت الموافقة على طلبك. مرحبًا بك في دوري قاضي عياض." : `لم تتم الموافقة على طلب الانضمام. السبب: ${rejectionReason}`;
+  const message = decision === "approved"
+    ? "تمت الموافقة على طلبك. مرحبًا بك في دوري قاضي عياض." + (reviewMessage ? `\n\nرسالة الإدارة: ${reviewMessage}` : "")
+    : `لم تتم الموافقة على طلب الانضمام. السبب: ${reviewMessage}`;
   const vapidPublic = Deno.env.get("VAPID_PUBLIC_KEY");
   const vapidPrivate = Deno.env.get("VAPID_PRIVATE_KEY");
   const vapidSubject = Deno.env.get("VAPID_SUBJECT");
