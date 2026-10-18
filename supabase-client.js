@@ -71,7 +71,7 @@
     async table(name,{select='*',filters={},order,limit=100}={}){const q={select,limit:String(limit)};Object.assign(q,filters);if(order)q.order=order;return request(`rest/v1/${name}`,{query:q});},
     async insert(name,rows,returning='representation'){return request(`rest/v1/${name}`,{method:'POST',body:rows,headers:{Prefer:`return=${returning}`}});},
     async upsert(name,rows,onConflict,returning='minimal'){return request(`rest/v1/${name}`,{method:'POST',query:{on_conflict:onConflict},body:rows,headers:{Prefer:`resolution=merge-duplicates,return=${returning}`}});},
-    async update(name,filters,patch){return request(`rest/v1/${name}`,{method:'PATCH',query:filters,body:patch,headers:{Prefer:'return=representation'}});},
+    async update(name,filters,patch,returning='representation'){return request(`rest/v1/${name}`,{method:'PATCH',query:filters,body:patch,headers:{Prefer:`return=${returning}`}});},
     async delete(name,filters){return request(`rest/v1/${name}`,{method:'DELETE',query:filters,headers:{Prefer:'return=representation'}});},
     async uploadObject(bucket,path,blob,contentType='application/octet-stream'){
       const s=await validSession();if(!s?.access_token)throw new Error('انتهت جلسة الدخول. سجّل الدخول مجددًا.');
