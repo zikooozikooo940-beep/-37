@@ -20,16 +20,16 @@ create table if not exists public.team_complaints (
 alter table public.teams enable row level security;
 alter table public.team_complaints enable row level security;
 grant select,insert,update,delete on public.teams,public.team_complaints to authenticated;
-drop policy if exists "approved members read teams" on public.teams;
-create policy "approved members read teams" on public.teams for select to authenticated using(public.is_approved_member());
-drop policy if exists "managers manage teams" on public.teams;
-create policy "managers manage teams" on public.teams for all to authenticated using(public.is_manager()) with check(public.is_manager());
-drop policy if exists "managers and submitters read complaints" on public.team_complaints;
-create policy "managers and submitters read complaints" on public.team_complaints for select to authenticated using(public.is_manager() or submitted_by=auth.uid());
-drop policy if exists "assigned captains submit complaints" on public.team_complaints;
-create policy "assigned captains submit complaints" on public.team_complaints for insert to authenticated with check(submitted_by=auth.uid() and status='pending' and exists(select 1 from public.teams t where t.id=team_id and t.captain_id=auth.uid()));
-drop policy if exists "managers review complaints" on public.team_complaints;
-create policy "managers review complaints" on public.team_complaints for update to authenticated using(public.is_manager()) with check(public.is_manager());
+drop policy if exists approved_members_read_teams on public.teams;
+create policy approved_members_read_teams on public.teams for select to authenticated using(public.is_approved_member());
+drop policy if exists managers_manage_teams on public.teams;
+create policy managers_manage_teams on public.teams for all to authenticated using(public.is_manager()) with check(public.is_manager());
+drop policy if exists managers_and_submitters_read_complaints on public.team_complaints;
+create policy managers_and_submitters_read_complaints on public.team_complaints for select to authenticated using(public.is_manager() or submitted_by=auth.uid());
+drop policy if exists assigned_captains_submit_complaints on public.team_complaints;
+create policy assigned_captains_submit_complaints on public.team_complaints for insert to authenticated with check(submitted_by=auth.uid() and status='pending' and exists(select 1 from public.teams t where t.id=team_id and t.captain_id=auth.uid()));
+drop policy if exists managers_review_complaints on public.team_complaints;
+create policy managers_review_complaints on public.team_complaints for update to authenticated using(public.is_manager()) with check(public.is_manager());
 create or replace view public.public_teams as
 select t.id,t.tournament_id,t.name,t.logo_path,p.display_name as captain_name
 from public.teams t left join public.profiles p on p.id=t.captain_id
