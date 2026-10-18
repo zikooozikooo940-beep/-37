@@ -2,7 +2,7 @@
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key='qadiyadh-league-v1';
-const defaults={theme:'dark',reminders:[],votes:{},requests:[],players:[],matches:[],drawn:false,closed:false,news:[],drawTeams:[],drawAssignments:[],remoteSettings:{}};
+const defaults={theme:'dark',reminders:[],votes:{},requests:[],players:[],matches:[],drawn:false,closed:false,news:[],drawTeams:[],drawAssignments:[],remoteSettings:{},teams:[],complaints:[]};
 let state;try{const cached=JSON.parse(localStorage.getItem(key)||'null');state={...defaults,...(cached?.previewSchema===2?cached:{})};state.previewSchema=2}catch{state={...defaults,previewSchema:2}}
 function save(){try{if(LeagueDB.configured){localStorage.removeItem(key);return}state.previewSchema=2;localStorage.setItem(key,JSON.stringify(state))}catch{toast('تعذر حفظ المعاينة في هذا المتصفح')}}
 function toast(msg){$('#toastText').textContent=msg;$('#toast').classList.add('show');setTimeout(()=>$('#toast').classList.remove('show'),2400)}
