@@ -71,6 +71,6 @@
     const showRuntimeError=(message)=>{const n=document.getElementById('systemNotice');if(!n)return;n.textContent=message;n.classList.remove('hide','success');n.classList.add('error')};
     window.addEventListener('error',e=>{const target=e.target;if(target&&target!==window&&!(target instanceof HTMLScriptElement))return;const source=e.filename||target?.src||'غير محدد';const line=e.lineno?` (السطر ${e.lineno})`:'';if(target instanceof HTMLScriptElement)showRuntimeError(`تعذر تحميل ملف الموقع: ${source}. تحقق من وجود ملفات app.js وsupabase-client.js بجانب index.html.`);else if(e.message==='Script error.'&&location.protocol==='file:')showRuntimeError('الموقع مفتوح مباشرة كملف (file://)، لذلك المتصفح يخفي تفاصيل الخطأ. شغّله عبر عنوان يبدأ بـ http://localhost أو انشره على استضافة HTTPS، ثم حدّث الصفحة.');else if(e.message==='Script error.')showRuntimeError(`المتصفح أخفى تفاصيل خطأ JavaScript في ${source}${line}. افتح الموقع من استضافة HTTPS ثم حدّث الصفحة لإظهار تفاصيل أدق.`);else showRuntimeError(`خطأ JavaScript في ${source}${line}: ${e.message||'خطأ غير معروف'}`)},true);
     window.addEventListener('unhandledrejection',e=>showRuntimeError(`تعذر إكمال العملية: ${e.reason?.message||String(e.reason||'خطأ غير معروف')}`));
-  </script>  <script src="app.js?v=knockout4"></script>
+  </script>  <script src="app.js?v=knockout5"></script>
 </body></html>
 
